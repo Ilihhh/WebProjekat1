@@ -1,0 +1,961 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letovi</title>
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #41729F;
+            color: #C3E0E5;
+        }
+
+        nav {
+            background-color: #274472;
+            overflow: hidden;
+            color: #C3E0E5
+        }
+
+            nav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+                nav a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .nav-right {
+            float: right;
+        }
+
+        .sortable:hover {
+            cursor: pointer;
+            background-color: #f1f1f1;
+        }
+
+        .sortable::after {
+            content: '\25B2'; /* default up arrow */
+            float: right;
+        }
+
+        .sortable.desc::after {
+            content: '\25BC'; /* down arrow */
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            background-color: #41729F; /* New background color */
+            color: #C3E0E5; /* New text color */
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        input[type="text"], input[type="datetime-local"], input[type="number"], select, button, input[type="date"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #C3E0E5;
+            color: #274472
+        }
+
+        button {
+            background-color: #274472;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 3px;
+            border: #274472
+        }
+
+            button:hover {
+                background-color: #5885AF;
+            }
+
+            button.cancel {
+                background-color: #f44336;
+            }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            margin: 0;
+        }
+
+        th, td {
+            border-color: #274472;
+            border: 1px solid #274472;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #274472;
+        }
+
+        .aviokompanija-link {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .admin-actions {
+            display: none;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #274472;
+            border-radius: 5px;
+            background-color: #41729F;
+        }
+
+            .form-section h2 {
+                margin-top: 0;
+            }
+
+            .form-section input {
+                margin-bottom: 10px;
+            }
+
+            .form-section select {
+                margin-bottom: 10px;
+            }
+
+        .action-column {
+            text-align: center;
+        }
+
+            .action-column button {
+                padding: 5px 10px;
+                background-color: #274472;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 3px;
+            }
+
+                .action-column button.cancel {
+                    margin-top: 3px;
+                    background-color: #f44336;
+                }
+
+                .action-column button:hover {
+                    background-color: #5885AF;
+                    opacity: 0.8;
+                }
+        .header-container {
+            display: flex;
+            align-items: center; /* Vertikalno centriranje */
+            justify-content: center; /* Horizontalno centriranje */
+            position: relative; /* Omogućava apsolutno pozicioniranje dugmeta */
+            margin-bottom: 10px; /* Dodaćemo malo prostora ispod naslova */
+        }
+
+            .header-container button {
+                position: absolute; /* Omogućava da dugme bude pozicionirano nezavisno od h1 */
+                right: 0; /* Postavlja dugme skroz levo */
+                width: 140px; /* Fiksna širina dugmeta */
+                height: 50px; /* Fiksna visina dugmeta */
+                margin-right:5px;
+                font-size:20px;
+                /*transform: translateY(-50%); /* Korekcija za vertikalno centriranje */
+            }
+
+            .header-container h1 {
+                margin-left:5px;
+                flex-grow: 1; /* Omogućava da h1 zauzme preostali prostor i bude centriran */
+                text-align: left; /* Osigurava da je tekst unutar h1 centriran */
+            }
+        #newFlightForm {
+            background-color: #41729F;
+            border-color: #274472
+        }
+        #formEditLet {
+            background-color: #41729F;
+            border-color: #274472
+        }
+    </style>
+
+</head>
+<body>
+    <nav>
+        <a href="index.html">Početna</a>
+        <a href="ClientApp/aviokompanije.html">Aviokompanije</a>
+        <a id="registerLink" href="ClientApp/register.html" class="nav-right">Registracija</a>
+        <a id="loginLink" href="ClientApp/login.html" class="nav-right">Log in</a>
+        <a id="logoutLink" href="#" class="nav-right" style="display:none;" onclick="logout()">Log out</a>
+        <a id="userProfileLink" href="#" class="nav-right" style="display:none;"></a>
+        <a id="rezervacijeLink" href="#" style="display:none;">Rezervacije</a>
+
+    </nav>
+
+    <div class="container" style="display:none;">
+        <form id="newFlightForm">
+            <div class="form-section">
+                <h2>Dodaj novi let</h2>
+                <div class="form-group">
+                    <label for="aviokompanijaNovo">Aviokompanija</label>
+                    <select id="aviokompanijaNovo" name="aviokompanijaNovo" required>
+                        <option value="">Izaberite aviokompaniju</option>
+                        <!-- Ovdje će se dinamički dodavati opcije aviokompanija -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="polaznaDestinacijaNovo">Polazna destinacija</label>
+                    <input type="text" id="polaznaDestinacijaNovo" name="polaznaDestinacijaNovo" required>
+                </div>
+                <div class="form-group">
+                    <label for="odredisnaDestinacijaNovo">Odredišna destinacija</label>
+                    <input type="text" id="odredisnaDestinacijaNovo" name="odredisnaDestinacijaNovo" required>
+                </div>
+                <div class="form-group">
+                    <label for="datumIVremePolaskaNovo">Datum i vreme polaska</label>
+                    <input type="datetime-local" id="datumIVremePolaskaNovo" name="datumIVremePolaskaNovo" required>
+                </div>
+                <div class="form-group">
+                    <label for="datumIVremeDolaskaNovo">Datum i vreme dolaska</label>
+                    <input type="datetime-local" id="datumIVremeDolaskaNovo" name="datumIVremeDolaskaNovo" required>
+                </div>
+                <div class="form-group">
+                    <label for="brojSlobodnihMestaNovo">Broj slobodnih mesta</label>
+                    <input type="number" id="brojSlobodnihMestaNovo" name="brojSlobodnihMestaNovo" required>
+                </div>
+                <div class="form-group">
+                    <label for="cenaNovo">Cena</label>
+                    <input type="number" id="cenaNovo" name="cenaNovo" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit">Dodaj</button>
+                <button type="button" class="cancel" onclick="sakriFormuZaDodavanjeClick()">Odustani</button>
+            </div>
+        </form>
+    </div>
+
+
+    <div class="header-container">
+        <button id="dodajLetButton" onclick="formaZaDodavanjeClick()">Dodaj Let</button>
+        <h1>Pregled Letova</h1>
+    </div>
+
+    <table id="searchTable">
+        <tr>
+            <td>
+                <label for="polaznaDestinacija">Polazna destinacija:</label>
+                <select id="polaznaDestinacija" name="polaznaDestinacija">
+                    <option value="">Sve</option>
+                </select>
+            </td>
+            <td>
+                <label for="odredisnaDestinacija">Odredišna destinacija:</label>
+                <select id="odredisnaDestinacija" name="odredisnaDestinacija">
+                    <option value="">Sve</option>
+                </select>
+            </td>
+            <td>
+                <label for="datumPolaska">Datum polaska:</label>
+                <input type="date" id="datumPolaska" name="datumPolaska">
+            </td>
+            <td>
+                <label for="datumDolaska">Datum dolaska:</label>
+                <input type="date" id="datumDolaska" name="datumDolaska">
+            </td>
+            <td>
+                <label for="aviokompanija">Aviokompanija:</label>
+                <select id="aviokompanija" name="aviokompanija">
+                    <option value="">Sve</option>
+                </select>
+            </td>
+            <td id="statusCelija">
+                <label for="statusLeta" id="statusLetaLabel">Status:</label>
+                <select id="statusLeta" name="statusLeta">
+                    <option value="">Svi</option>
+                    <option value="0">Aktivan</option>
+                    <option value="1">Otkazan</option>
+                    <option value="2">Završen</option>
+                </select>
+            </td>
+            <td><button type="button" onclick="pretraziLetove()">Pretraži letove</button></td>
+        </tr>
+    </table>
+
+    <div>
+        <table id="letoviTable">
+            <thead>
+                <tr>
+                    <th>Aviokompanija</th>
+                    <th>Polazna Destinacija</th>
+                    <th>Odredišna Destinacija</th>
+                    <th>Datum i vreme polaska</th>
+                    <th>Datum i vreme dolaska</th>
+                    <th>Slobodna </th>
+                    <th>Zauzeta </th>
+                    <th id="sortByPrice" class="sortable">Cena</th>
+                    <th>Status</th>
+                    <th id="RezervacijaAjdi">Akcija</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Podaci će se dinamički dodavati ovde -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="editLetForm" class="form-section" style="display:none;">
+        <h2>Izmeni let</h2>
+        <form id="formEditLet">
+            <input type="hidden" id="editLetId">
+
+            <label for="editPolaznaDestinacija">Polazna destinacija:</label>
+            <input type="text" id="editPolaznaDestinacija" name="PolaznaDestinacija" disabled>
+
+            <label for="editDolaznaDestinacija">Dolazna destinacija:</label>
+            <input type="text" id="editDolaznaDestinacija" name="DolaznaDestinacija" disabled>
+
+            <label for="editDatumPolaska">Datum polaska:</label>
+            <input type="datetime-local" id="editDatumPolaska" name="DatumPolaska" required>
+
+            <label for="editDatumDolaska">Datum dolaska:</label>
+            <input type="datetime-local" id="editDatumDolaska" name="DatumDolaska" required>
+
+            <label for="editBrojSedista">Broj sedišta:</label>
+            <input type="number" id="editBrojSedista" name="BrojSedista" required>
+
+            <label for="editCena">Cena:</label>
+            <input type="number" id="editCena" name="Cena" required>
+
+            <label for="editStatus">Status:</label>
+            <select id="editStatus" name="Status" required>
+                <option value="Aktivan">Aktivan</option>
+                <option value="Otkazan">Otkazan</option>
+                <option value="Zavrsen">Zavrsen</option>
+            </select>
+
+            <button type="submit">Potvrdi izmenu</button>
+            <button type="button" onclick="cancelEdit()" class="cancel">Odustani</button>
+        </form>
+    </div>
+
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var flights = [];
+        var sortAscending = true;
+        var tipUlogovanogKorisnika;
+        var isLoggedIn = false;
+
+        $(document).ready(function () {
+            checkSession(function () {
+                loadInitialData();
+            });
+            //loadInitialData();
+
+            $('#newFlightForm').on('submit', function (event) {
+                event.preventDefault();
+                submitFlightDetails();
+            });
+
+            $('#formEditLet').on('submit', function (event) {
+                event.preventDefault();
+                submitEditLet();
+            });
+
+
+            $('#sortByPrice').click(function () {
+                sortFlightsByPrice();
+                prikaziLetove(flights);
+            });
+        });
+
+        function checkSession(callback) {
+            $.ajax({
+                url: 'api/Korisnici/checkSession',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.isLoggedIn) {
+                        isLoggedIn = true;
+                        tipUlogovanogKorisnika = data.Korisnik.Tip;
+
+                        $('#registerLink').hide();
+                        $('#loginLink').hide();
+                        $('#logoutLink').show();
+                        $('#userProfileLink').text(data.Korisnik.KorisnickoIme).attr('href', 'ClientApp/korisnik.html').show();
+
+                        if (tipUlogovanogKorisnika == 0) {
+                            $('#rezervacijeLink').attr('href', 'ClientApp/rezervacije.html');
+                        } else if (tipUlogovanogKorisnika == 1) {
+                            $('#rezervacijeLink').attr('href', 'ClientApp/rezervacije_upravljanje.html');
+                        }
+                        $('#rezervacijeLink').show();
+
+                        $('#statusCelija').show();
+                        if (tipUlogovanogKorisnika == 1) {
+                            $('#dodajLetButton').show();
+                            // $('.container').show();
+                        } else {
+                            //$('.container').hide();
+                            $('#dodajLetButton').hide();
+                        }
+
+                        $('#RezervacijaAjdi').show();
+                        $('.rezervacijaCol').show();
+
+                        // Pozivamo callback funkciju ako je definisana
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    } else {
+                        isLoggedIn = false;
+
+                        $('#registerLink').show();
+                        $('#loginLink').show();
+                        $('#logoutLink').hide();
+                        $('#userProfileLink').hide();
+                        $('#rezervacijeLink').hide();
+                        $('#statusCelija').hide();
+                        $('#RezervacijaAjdi').hide();
+                        $('.rezervacijaCol').hide();
+                        //$('.container').hide();
+                        $('#dodajLetButton').hide();
+
+                        // Pozivamo callback funkciju ako je definisana
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+
+        function sakriFormuZaDodavanjeClick()
+        {
+            $('#newFlightForm')[0].reset();             //mora [0] jer pristupamo DATA OBJECT MODEL elementu
+            $('.container').hide();
+        }
+        
+
+        function formaZaDodavanjeClick() {
+            $('.container').show();
+        }
+
+        function submitEditLet() {
+
+            var letId = document.getElementById('editLetId').value;
+            var polaznaDestinacija = document.getElementById('editPolaznaDestinacija').value;
+            var dolaznaDestinacija = document.getElementById('editDolaznaDestinacija').value;
+            var datumPolaska = document.getElementById('editDatumPolaska').value;
+            var datumDolaska = document.getElementById('editDatumDolaska').value;
+            var brojSedista = document.getElementById('editBrojSedista').value;
+            var cena = document.getElementById('editCena').value;
+            var status;
+            var selectedStatus = document.getElementById('editStatus').value;
+
+            // Provera da li je cena ili broj slobodnih mesta manji od 1
+            if (parseInt(brojSedista) < 1 || parseFloat(cena) < 1) {
+                alert('Cena i broj slobodnih mesta moraju biti veći od 0.');
+                return; // Zaustavi dalji tok funkcije
+            }
+
+            switch (selectedStatus) {
+                case 'Aktivan':
+                    status = 0;
+                    break;
+                case 'Otkazan':
+                    status = 1;
+                    break;
+                case 'Zavrsen':
+                    status = 2;
+                    break;
+            }
+
+            function toLocalISOString(date) {
+                var tzoffset = (new Date()).getTimezoneOffset() * 60000; // Pomeranje vremenske zone u milisekundama
+                var localISOTime = (new Date(date - tzoffset)).toISOString().slice(0, -1);
+                return localISOTime;
+            }
+
+            // Formiranje objekta sa podacima o letu
+            var editedLet = {
+                Id: letId,
+                PolaznaDestinacija: polaznaDestinacija,
+                OdredisnaDestinacija: dolaznaDestinacija,
+                DatumIVremePolaska: toLocalISOString(new Date(datumPolaska)),
+                DatumIVremeDolaska: toLocalISOString(new Date(datumDolaska)),
+                BrojSlobodnihMesta: parseInt(brojSedista),
+                Cena: parseFloat(cena),
+                Status: status
+            };
+
+            console.log('editedLet:', editedLet); // Dodajte ovaj red za proveru objekta pre slanja
+
+            $.ajax({
+                url: 'api/Flights/Update',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(editedLet),
+                success: function (response) {
+                    console.log('Uspesno izmenjen let:', response);
+                    alert("Uspesna izmena leta");
+                    $('#editLetForm').hide();
+                    loadInitialData();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Greska prilikom izmene leta:', status, error);
+                    console.log('xhr:', xhr);
+                    console.log('xhr.responseText:', xhr.responseText);
+                    console.log('xhr.responseJSON:', xhr.responseJSON);
+
+                    if (xhr.responseJSON && xhr.responseJSON.ModelState) {
+                        var errors = xhr.responseJSON.ModelState;
+                        var errorMessages = [];
+                        for (var key in errors) {
+                            if (errors.hasOwnProperty(key)) {
+                                errorMessages = errorMessages.concat(errors[key]);
+                            }
+                        }
+                        if (errorMessages.length > 0) {
+                            alert(errorMessages.join('\n')); // Prikaz svih grešaka
+                        } else {
+                            alert("Došlo je do greške prilikom izmene leta.");
+                        }
+                    } else {
+                        alert("Došlo je do greške prilikom izmene leta.");
+                    }
+                }
+            });
+
+
+        }
+
+
+        function submitFlightDetails() {
+            var cenaNovo = $('#cenaNovo').val();
+            var brojSlobodnihMestaNovo = $('#brojSlobodnihMestaNovo').val();
+
+            // Provera da li su cena i broj slobodnih mesta veći od 1
+            if (cenaNovo <= 1 || brojSlobodnihMestaNovo <= 1) {
+                alert('Cena i broj slobodnih mesta moraju biti veći od 1.');
+                return; // Zaustavlja dalji tok funkcije ako uslov nije ispunjen
+            }
+
+            var noviLet = {
+                AviokompanijaNovo: $('#aviokompanijaNovo').val(),
+                PolaznaDestinacijaNovo: $('#polaznaDestinacijaNovo').val(),
+                OdredisnaDestinacijaNovo: $('#odredisnaDestinacijaNovo').val(),
+                DatumIVremePolaskaNovo: $('#datumIVremePolaskaNovo').val(),
+                DatumIVremeDolaskaNovo: $('#datumIVremeDolaskaNovo').val(),
+                BrojSlobodnihMestaNovo: brojSlobodnihMestaNovo,
+                CenaNovo: cenaNovo
+            };
+
+            $.ajax({
+                url: '/api/Flights/Add', // URL za kontroler za letove
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(noviLet),
+                success: function (response) {
+                    alert('Let je uspešno dodat!');
+                    loadInitialData();
+                    $('.container').hide();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    var errorMessage = 'Došlo je do greške prilikom dodavanja leta. Molimo pokušajte ponovo.';
+                    if (xhr.responseJSON && xhr.responseJSON.Message) {
+                        errorMessage = xhr.responseJSON.Message
+                    }
+                    alert(errorMessage);
+                }
+            });
+
+            
+        }
+
+        function logout() {
+            $.ajax({
+                url: 'api/Korisnici/logout',
+                type: 'GET',
+                success: function () {
+                    checkSession(function () {
+                        loadInitialData();
+                    });
+                    //loadInitialData();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function loadAviokompanijeNames() {
+            $.ajax({
+                url: 'api/Aviokompanije',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    var aviokompanije = new Set();
+
+                    $.each(data, function (index, aviokompanija) {
+                        aviokompanije.add(aviokompanija.Naziv);
+                    });
+
+                    var aviokompanijeSelect = $('#aviokompanijaNovo');
+                    aviokompanijeSelect.empty();
+                    aviokompanijeSelect.append(new Option("Izaberite aviokompaniju ", ""))
+
+                    aviokompanije.forEach(function (kompanija) {
+                        aviokompanijeSelect.append(new Option(kompanija, kompanija));
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    alert('Došlo je do greške prilikom učitavanja aviokompanija.');
+                }
+            });
+        }
+        function loadInitialData() {
+            $.ajax({
+                url: 'api/Letovi',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    flights = data;
+                    console.log(flights); // Provera podataka u konzoli
+
+                    var polazneDestinacije = new Set();
+                    var odredisneDestinacije = new Set();
+                    var aviokompanije = new Set();
+
+                    $.each(flights, function (index, let) {
+                        polazneDestinacije.add(let.PolaznaDestinacija);
+                        odredisneDestinacije.add(let.OdredisnaDestinacija);
+                        aviokompanije.add(let.Aviokompanija);
+                    });
+
+                    // Popuni polazne destinacije
+                    var polaznaDestinacijaSelect = $('#polaznaDestinacija');
+                    polaznaDestinacijaSelect.empty();
+                    polaznaDestinacijaSelect.append(new Option("Sve", ""))
+                    polazneDestinacije.forEach(function (destinacija) {
+                        polaznaDestinacijaSelect.append(new Option(destinacija, destinacija));
+                    });
+
+                    // Popuni odredišne destinacije
+                    var odredisnaDestinacijaSelect = $('#odredisnaDestinacija');
+                    odredisnaDestinacijaSelect.empty();
+                    odredisnaDestinacijaSelect.append(new Option("Sve", ""))
+                    odredisneDestinacije.forEach(function (destinacija) {
+                        odredisnaDestinacijaSelect.append(new Option(destinacija, destinacija));
+                    });
+
+                    // Popuni aviokompanije
+                    var aviokompanijaSelect = $('#aviokompanija');
+                    aviokompanijaSelect.empty();
+                    aviokompanijaSelect.append(new Option("Sve", ""))
+                    aviokompanije.forEach(function (aviokompanija) {
+                        aviokompanijaSelect.append(new Option(aviokompanija, aviokompanija));
+                    });
+
+                    loadAviokompanijeNames();
+
+                    // Prikaži sve aktivne letove
+                    prikaziLetove(flights);
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function prikaziLetove(data) {
+            var tableBody = $('#letoviTable tbody');
+            tableBody.empty(); // Očisti sadržaj tabele
+
+            $.each(data, function (index, let) {
+                var row = '<tr>' +
+                    '<td class="aviokompanija-link" onclick="redirectToAviokompanijaDetails(\'' + let.Aviokompanija + '\')">' + let.Aviokompanija + '</td>' +
+                    '<td>' + let.PolaznaDestinacija + '</td>' +
+                    '<td>' + let.OdredisnaDestinacija + '</td>' +
+                    '<td>' + new Date(let.DatumIVremePolaska).toLocaleString() + '</td>' +
+                    '<td>' + new Date(let.DatumIVremeDolaska).toLocaleString() + '</td>' +
+                    '<td>' + let.BrojSlobodnihMesta + '</td>' +
+                    '<td>' + let.BrojZauzetihMesta + '</td>' +
+                    '<td>' + let.Cena + '</td>' +
+                    '<td>' + getStatusText(let.Status) + '</td>';
+
+                if (isLoggedIn && tipUlogovanogKorisnika == 1) {
+                    row += '<td class="action-column"><button onclick="izmeniLet(\'' + let.Id + '\')">Izmeni</button><button class="cancel" onclick="obrisiLet(\'' + let.Id + '\')">Obrisi</button></td>';
+                } else if (isLoggedIn && tipUlogovanogKorisnika == 0) {
+                    if (let.Status === 0 && let.BrojSlobodnihMesta > 0) {
+                        row += '<td class="rezervacijaCol"><button onclick="reserveFlight(\'' + let.Id + '\')">Rezerviši</button></td>';
+                    } else if (let.Status == 2) {
+                        row += '<td class="rezervacijaCol"><button onclick="airlineRecension(\'' + let.Aviokompanija + '\')">Ostavi recenziju</button></td>';
+                    }
+                }
+
+                row += '</tr>';
+                tableBody.append(row);
+            });
+            checkSession();
+        }
+
+        function obrisiLet(letId) {
+            // AJAX poziv za slanje zahteva za brisanje leta
+            $.ajax({
+                url: '/api/Flights/Delete/' + letId, // Prilagodite URL-u prema vašoj API ruti za brisanje leta
+                method: 'POST', // Može biti POST, DELETE ili drugi metod koji koristite na serveru
+                contentType: 'application/json',
+                data: JSON.stringify({ Id: letId }),
+                success: function (response) {
+                    alert("Let je uspešno obrisan!");
+                    loadInitialData();
+                },
+                error: function (xhr, status, error) {
+                    //console.error('Greška prilikom brisanja leta:', status, error);
+                    if (xhr.responseJSON && xhr.responseJSON.Message) {
+                        alert(xhr.responseJSON.Message); // Prikaži poruku iz BadRequest-a
+                    } else {
+                        alert('Došlo je do greške prilikom brisanja leta.');
+                    }
+                }
+            });
+        }
+
+
+        function izmeniLet(letId) {
+            // Prikazivanje forme za izmenu
+            document.getElementById('editLetForm').style.display = 'block';
+
+            // Postavljanje letId u skriveni input
+            document.getElementById('editLetId').value = letId;
+
+            // Dohvatanje podataka o letu na osnovu Id-a
+            $.ajax({
+                url: '/api/Flights/' + letId,
+                method: 'GET',
+                success: function (let) {
+                    // Provera dobijenih podataka u konzoli
+                    console.log(let);
+
+                    // Popunjavanje forme sa podacima o letu
+                    var polaznaDestinacijaInput = document.getElementById('editPolaznaDestinacija');
+                    if (polaznaDestinacijaInput) {
+                        polaznaDestinacijaInput.value = let.PolaznaDestinacija || '';
+                    }
+
+                    var dolaznaDestinacijaInput = document.getElementById('editDolaznaDestinacija');
+                    if (dolaznaDestinacijaInput) {
+                        dolaznaDestinacijaInput.value = let.OdredisnaDestinacija || '';
+                    }
+
+                    // Konverzija datuma i vremena polaska
+                    if (let.DatumIVremePolaska) {
+                        var datumPolaska = new Date(let.DatumIVremePolaska);
+                        var datumPolaskaInput = document.getElementById('editDatumPolaska');
+                        if (datumPolaskaInput) {
+                            datumPolaskaInput.value = datumPolaska.toLocaleString('sv-SE', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            }).replace(' ', 'T');
+                        }
+                    } else {
+                        document.getElementById('editDatumPolaska').value = '';
+                    }
+
+                    // Konverzija datuma i vremena dolaska
+                    if (let.DatumIVremeDolaska) {
+                        var datumDolaska = new Date(let.DatumIVremeDolaska);
+                        var datumDolaskaInput = document.getElementById('editDatumDolaska');
+                        if (datumDolaskaInput) {
+                            datumDolaskaInput.value = datumDolaska.toLocaleString('sv-SE', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            }).replace(' ', 'T');
+                        }
+                    } else {
+                        document.getElementById('editDatumDolaska').value = '';
+                    }
+
+                    var brojSedistaInput = document.getElementById('editBrojSedista');
+                    if (brojSedistaInput) {
+                        brojSedistaInput.value = let.BrojSlobodnihMesta || '';
+                    }
+
+                    var cenaInput = document.getElementById('editCena');
+                    if (cenaInput) {
+                        cenaInput.value = let.Cena || '';
+                    }
+
+                    /*
+                    var noviBrojSedistaInput = document.getElementById('editNoviBrojSedista');
+                    if (noviBrojSedistaInput) {
+                        noviBrojSedistaInput.value = '';
+                    }
+                    */
+
+                    var statusInput = document.getElementById('editStatus');
+                    if (statusInput) {
+                        if (let.Status === 0) {
+                            statusInput.value = 'Aktivan';
+                        } else if (let.Status === 1) {
+                            statusInput.value = 'Otkazan';
+                        } else if (let.Status === 2) {
+                            statusInput.value = 'Zavrsen';
+                        }
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', status, error);
+                }
+            });
+        }
+
+
+
+
+
+
+        function cancelEdit() {
+            document.getElementById('editLetForm').style.display = 'none';
+            document.getElementById('formEditLet').reset();
+        }
+
+
+
+        function airlineRecension(aviokompanija) {
+            window.location.href = 'ClientApp/ostavi_recenziju.html?aviokompanija=' + encodeURIComponent(aviokompanija);
+        }
+
+        function pretraziLetove() {
+            var searchParams = {
+                polaznaDestinacija: $('#polaznaDestinacija').val(),
+                odredisnaDestinacija: $('#odredisnaDestinacija').val(),
+                datumPolaska: $('#datumPolaska').val(),
+                datumDolaska: $('#datumDolaska').val(),
+                aviokompanija: $('#aviokompanija').val(),
+                statusLeta: $('#statusLeta').val()
+            };
+
+            $.ajax({
+                url: 'api/Flights/Search',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(searchParams),
+                success: function (data) {
+                    flights = data;
+                    console.log(flights); // Provera podataka u konzoli
+
+                    var tableBody = $('#letoviTable tbody');
+                    tableBody.empty(); // Očisti sadržaj tabele
+
+                    $.each(flights, function (index, let) {
+                        var row = '<tr>' +
+                            '<td class="aviokompanija-link" onclick="redirectToAviokompanijaDetails(\'' + let.Aviokompanija + '\')">' + let.Aviokompanija + '</td>' +
+                            '<td>' + let.PolaznaDestinacija + '</td>' +
+                            '<td>' + let.OdredisnaDestinacija + '</td>' +
+                            '<td>' + new Date(let.DatumIVremePolaska).toLocaleString() + '</td>' +
+                            '<td>' + new Date(let.DatumIVremeDolaska).toLocaleString() + '</td>' +
+                            '<td>' + let.BrojSlobodnihMesta + '</td>' +
+                            '<td>' + let.BrojZauzetihMesta + '</td>' +
+                            '<td>' + let.Cena + '</td>' +
+                            '<td>' + getStatusText(let.Status) + '</td>';
+                        if (isLoggedIn && tipUlogovanogKorisnika == 1) {
+                            row += '<td class="action-column" ><button onclick="izmeniLet(\'' + let.Id + '\')">Izmeni</button><button class="cancel" onclick="obrisiLet(\'' + let.Id + '\')">Obrisi</button></td>';
+                        } else if (isLoggedIn && tipUlogovanogKorisnika == 0) {
+                            if (let.Status === 0 && let.BrojSlobodnihMesta > 0) {
+                                row += '<td class="rezervacijaCol"><button onclick="reserveFlight(\'' + let.Id + '\')">Rezerviši</button></td>';
+                            } else if (let.Status == 2) {
+                                row += '<td class="rezervacijaCol"><button onclick="airlineRecension(\'' + let.Aviokompanija + '\')">Ostavi recenziju</button></td>';
+                            }
+                        }
+                        '</tr>';
+                        tableBody.append(row);
+                    });
+                    
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+
+        function reserveFlight(letId) {
+            window.location.href = 'ClientApp/napravi_rezervaciju.html?letId=' + letId;
+        }
+
+        function sortFlightsByPrice() {
+            flights.sort(function (a, b) {
+                return sortAscending ? a.Cena - b.Cena : b.Cena - a.Cena;
+            });
+            sortAscending = !sortAscending;
+
+            //menjanje strelice
+            $('#sortByPrice').toggleClass('desc', sortAscending);
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 0:
+                    return "Aktivan";
+                case 1:
+                    return "Otkazan";
+                case 2:
+                    return "Završen";
+                default:
+                    return "Nepoznat";
+            }
+        }
+
+        function redirectToAviokompanijaDetails(aviokompanijaNaziv) {
+            window.location.href = 'ClientApp/aviokompanija_detalji.html?naziv=' + encodeURIComponent(aviokompanijaNaziv);
+        }
+    </script>
+</body>
+</html>

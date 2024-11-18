@@ -1,0 +1,111 @@
+[
+  {
+    "KorisnickoIme": "noviKorisnik",
+    "Lozinka": "sifra",
+    "Ime": "Ime",
+    "Prezime": "Prezime",
+    "Email": "email@example.com",
+    "DatumRodjenja": "1990-01-01T00:00:00",
+    "Pol": "M",
+    "Tip": 0,
+    "ListaRezervacija": []
+  },
+  {
+    "KorisnickoIme": "Tal",
+    "Lozinka": "zzz",
+    "Ime": "I",
+    "Prezime": "B",
+    "Email": "ilija.brdaric020@gmail.com",
+    "DatumRodjenja": "2002-02-20T00:00:00",
+    "Pol": "M",
+    "Tip": 1,
+    "ListaRezervacija": []
+  },
+  {
+    "KorisnickoIme": "Miki",
+    "Lozinka": "362",
+    "Ime": "Milan",
+    "Prezime": "Petrovic",
+    "Email": "mikimiki@gmail.com",
+    "DatumRodjenja": "2003-01-18T00:00:00",
+    "Pol": "M",
+    "Tip": 0,
+    "ListaRezervacija": [
+      {
+        "Id": "ab3a3e9b-278d-4c5e-b47c-4e6e73a06b63",
+        "Korisnik": "Miki",
+        "Let": "d4e9c8b7-0b04-4f3d-af20-605f33a4e0e3",
+        "BrojPutnika": 2,
+        "UkupnaCena": 400.0,
+        "Status": 0
+      },
+      {
+        "Id": "6a010640-0d11-4168-9d5d-e5043bcf6fb9",
+        "Korisnik": "Miki",
+        "Let": "e35f1234-4567-89ab-cdef-1234567890ab",
+        "BrojPutnika": 10,
+        "UkupnaCena": 400.0,
+        "Status": 3
+      },
+      {
+        "Id": "7f200ca0-bad9-4d48-b185-12dcdbacf7f8",
+        "Korisnik": "Miki",
+        "Let": "f569b6e7-3e2b-42a8-99b2-2e14f7d3770d",
+        "BrojPutnika": 1,
+        "UkupnaCena": 500.00,
+        "Status": 1
+      },
+      {
+        "Id": "473262e4-b41d-415e-af0f-1b13e292f546",
+        "Korisnik": "Miki",
+        "Let": "2eb2767b-f09a-42ef-bb9f-4f88d20f7544",
+        "BrojPutnika": 2,
+        "UkupnaCena": 2000.0,
+        "Status": 3
+      },
+      {
+        "Id": "24819f2f-120a-4b7d-8737-f78f4fc3b119",
+        "Korisnik": "Miki",
+        "Let": "2eb2767b-f09a-42ef-bb9f-4f88d20f7544",
+        "BrojPutnika": 3,
+        "UkupnaCena": 3000.0,
+        "Status": 3
+      },
+      {
+        "Id": "f6aa2546-ef92-49b6-9af5-ce9f9c8a58b3",
+        "Korisnik": "Miki",
+        "Let": "f569b6e7-3e2b-42a8-99b2-2e14f7d3770d",
+        "BrojPutnika": 1,
+        "UkupnaCena": 510.0,
+        "Status": 0
+      },
+      {
+        "Id": "2292490f-0f0f-4176-a07f-304c700c3380",
+        "Korisnik": "Miki",
+        "Let": "91b5e6c1-3d3d-4bfa-a9fe-1f2997d00f18",
+        "BrojPutnika": 10,
+        "UkupnaCena": 1500.00,
+        "Status": 2
+      },
+      {
+        "Id": "56337fdb-58d2-4d52-9715-642171d35e43",
+        "Korisnik": "Miki",
+        "Let": "91b5e6c1-3d3d-4bfa-a9fe-1f2997d00f18",
+        "BrojPutnika": 10,
+        "UkupnaCena": 1500.00,
+        "Status": 0
+      }
+    ]
+  },
+  {
+    "KorisnickoIme": "Dragan",
+    "Lozinka": "zzz",
+    "Ime": "D",
+    "Prezime": "D",
+    "Email": "d@gmail.com",
+    "DatumRodjenja": "2000-02-10T00:00:00",
+    "Pol": "M",
+    "Tip": 0,
+    "ListaRezervacija": []
+  }
+]

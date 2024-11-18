@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uredi Profil</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #41729F;
+            color: #C3E0E5;
+        }
+
+        nav {
+            background-color: #274472;
+            overflow: hidden;
+            color: #C3E0E5;
+        }
+
+            nav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+                nav a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .nav-right {
+            float: right;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #274472;
+            border-radius: 5px;
+            background-color: #41729F;
+        }
+
+            .profile-container h2 {
+                margin-top: 0;
+            }
+
+            .profile-container label {
+                font-weight: bold;
+                margin-top: 10px;
+                display: block;
+            }
+
+            .profile-container p {
+                margin: 0;
+            }
+
+            .profile-container input[type="text"],
+            .profile-container input[type="email"],
+            .profile-container input[type="password"],
+            .profile-container input[type="date"], /* Dodato stilizovanje za input tipa date */
+            .profile-container select {
+                width: 100%;
+                padding: 8px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+                background-color: #C3E0E5; 
+                color: #274472; 
+            }
+
+
+            .profile-container button {
+                background-color: #274472;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+                .profile-container button:hover {
+                    background-color: #5885AF;
+                }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Početna</a>
+        <a href="aviokompanije.html">Aviokompanije</a>
+        <a id="registerLink" href="register.html" class="nav-right">Registracija</a>
+        <a id="loginLink" href="login.html" class="nav-right">Log in</a>
+        <a id="logoutLink" href="#" class="nav-right" onclick="logout()">Log out</a>
+        <a id="userProfileLink" href="#" class="nav-right"></a>
+    </nav>
+
+    <div class="profile-container" id="profileContainer">
+        <h2>Uredi Profil</h2>
+        <form id="editProfileForm">
+            <label for="korisnickoIme">Korisničko Ime:</label>
+            <input type="text" id="korisnickoIme" name="korisnickoIme" required>
+
+            <label for="ime">Ime:</label>
+            <input type="text" id="ime" name="ime" required>
+
+            <label for="prezime">Prezime:</label>
+            <input type="text" id="prezime" name="prezime" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="datumRodjenja">Datum Rođenja:</label>
+            <input type="date" id="datumRodjenja" name="datumRodjenja" required>
+
+            <label for="pol">Pol:</label>
+            <select id="pol" name="pol">
+                <option value="M">Muški</option>
+                <option value="Z">Ženski</option>
+            </select>
+
+            <label for="staraLozinka">Lozinka:</label>
+            <input type="password" id="staraLozinka" name="staraLozinka" required>
+
+            <label for="novaLozinka">Nova Lozinka:</label>
+            <input type="password" id="novaLozinka" name="novaLozinka">
+
+            <button type="submit">Sačuvaj Promene</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            checkSession();
+            $('#editProfileForm').submit(saveUserProfile);
+        });
+
+        function checkSession() {
+            $.ajax({
+                url: '/api/Korisnici/checkSession',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    $('#korisnickoIme').val(data.Korisnik.KorisnickoIme);
+                    $('#ime').val(data.Korisnik.Ime);
+                    $('#prezime').val(data.Korisnik.Prezime);
+                    $('#email').val(data.Korisnik.Email);
+                    $('#datumRodjenja').val(new Date(data.Korisnik.DatumRodjenja).toISOString().substring(0, 10));
+                    $('#pol').val(data.Korisnik.Pol);
+
+                    // Update navbar links
+                    $('#registerLink').hide();
+                    $('#loginLink').hide();
+                    $('#logoutLink').show();
+                    $('#userProfileLink').text(data.Korisnik.KorisnickoIme).show();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function saveUserProfile(event) {
+            event.preventDefault();
+            var formData = {
+                KorisnickoIme: $('#korisnickoIme').val(),
+                Ime: $('#ime').val(),
+                Prezime: $('#prezime').val(),
+                Email: $('#email').val(),
+                DatumRodjenja: $('#datumRodjenja').val(),
+                Pol: $('#pol').val(),
+                StaraLozinka: $('#staraLozinka').val(),
+                NovaLozinka: $('#novaLozinka').val()
+            };
+
+            $.ajax({
+                url: '/api/Korisnici/editProfile',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function () {
+                    alert('Profil je uspešno ažuriran!');
+                    clearPasswordFields();
+                    checkSession();
+                    window.location.href = 'korisnik.html';
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    var errorMessage = 'Došlo je do greške prilikom ažuriranja profila.';
+                    if (xhr.responseJSON && xhr.responseJSON.Message) {
+                        errorMessage = xhr.responseJSON.Message;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        }
+
+        function clearPasswordFields() {
+            $('#staraLozinka').val('');
+            $('#novaLozinka').val('');
+        }
+
+        function logout() {
+            $.ajax({
+                url: '/api/Korisnici/logout',
+                type: 'GET',
+                success: function () {
+                    window.location.href = '../index.html';
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

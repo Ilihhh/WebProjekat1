@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalji aviokompanije</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #41729F;
+            color: #C3E0E5
+        }
+
+        nav {
+            background-color: #274472;
+            overflow: hidden;
+        }
+
+            nav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+                nav a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .nav-right {
+            float: right;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 10px;
+
+        }
+
+        table, th, td {
+            border: 1px solid #274472;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #274472;
+        }
+
+        p {
+            margin-left: 10px;
+        }
+
+        h1, h2, h3, h4 {
+            margin-left: 10px;
+        }
+
+        .recenzija-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+
+        .actions {
+            margin-top: 10px;
+        }
+
+            .actions button {
+                margin-right: 10px;
+            }
+
+        button {
+            background-color: #5885AF;
+            color: white;
+            cursor: pointer;
+            border-color: #274472
+        }
+
+            button:hover {
+                background-color: #274472;
+            }
+
+            button.cancel {
+                background-color: #f44336;
+            }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="../index.html">Početna</a>
+        <a href="aviokompanije.html">Aviokompanije</a>
+        <a id="registerLink" href="register.html" class="nav-right">Registracija</a>
+        <a id="loginLink" href="login.html" class="nav-right">Log in</a>
+        <a id="logoutLink" href="#" class="nav-right" style="display:none;" onclick="logout()">Log out</a>
+        <a id="userProfileLink" href="#" class="nav-right" style="display:none;"></a>
+    </nav>
+
+    <h1>Detalji aviokompanije</h1>
+
+    <div id="aviokompanijaDetails">
+        <h2>Aviokompanija A</h2>
+        <p>Adresa: Beograd, Srbija</p>
+        <p>Kontakt: kontakt@aviokompanija.com</p>
+
+        <h3>Letovi</h3>
+        <table id="letoviTable">
+            <thead>
+                <tr>
+                    <th>Polazna destinacija</th>
+                    <th>Odredišna destinacija</th>
+                    <th>Datum polaska</th>
+                    <th>Datum dolaska</th>
+                    <th>Cena</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Ovde se dinamički generišu letovi -->
+            </tbody>
+        </table>
+
+        <h3>Recenzije</h3>
+        <ul id="recenzijeList">
+            <!-- Ovde se dinamički generišu recenzije -->
+        </ul>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            checkSession();
+            var aviokompanijaNaziv = getUrlParameter('naziv');
+            var isAdmin = false; // Pretpostavka da trenutno nije administrator
+
+            function getStatusText(status) {
+                switch (status) {
+                    case 0:
+                        return "Aktivan";
+                    case 1:
+                        return "Otkazan";
+                    case 2:
+                        return "Zavrsen";
+                    default:
+                        return "Nepoznat";
+                }
+            }
+
+            function loadRecenzije(recenzije, aviokompanijaNaziv) {
+                var recenzijeList = $('#recenzijeList');
+                recenzijeList.empty(); // Očisti prethodne recenzije ako postoje
+
+                $.each(recenzije, function (index, recenzija) {
+                    // Samo prikaži recenzije koje su odobrene ili, ako je korisnik admin, sve recenzije
+                    if (recenzija.Status === 1 || isAdmin) {
+                        var listItem = '<li>' +
+                            '<p><strong>' + recenzija.Recenzent + '</strong></p>' +
+                            '<h4>' + recenzija.Naslov + '</h4>' +
+                            '<p>' + recenzija.Sadrzaj + '</p>';
+
+                        if (recenzija.Slika && recenzija.Slika.trim() !== '') {
+                            listItem += '<img class="recenzija-image" src="' + recenzija.Slika + '" alt="">';
+                        }
+
+                        if (isAdmin && recenzija.Status === 0) { // Samo admin može da ažurira status "Kreirana"
+                            listItem += '<div class="actions">' +
+                                '<button onclick="updateReviewStatus(\'' + recenzija.Recenzent + '\', \'' + aviokompanijaNaziv + '\', \'' + 1 + '\')">Odobri</button>' +
+                                '<button class="cancel" onclick="updateReviewStatus(\'' + recenzija.Recenzent + '\', \'' + aviokompanijaNaziv + '\', \'' + 2 + '\')">Odbij</button>' +
+                                '</div>';
+                        }
+
+                        listItem += '</li>';
+                        recenzijeList.append(listItem);
+                    }
+                });
+            }
+
+
+            function getUrlParameter(name) {
+                var results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.href);
+                return results !== null ? decodeURIComponent(results[1]) : null;
+            }
+
+            function checkSession() {
+                $.ajax({
+                    url: '/api/Korisnici/checkSession',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.isLoggedIn) {
+                            $('#registerLink').hide();
+                            $('#loginLink').hide();
+                            $('#logoutLink').show();
+                            $('#userProfileLink').text(data.Korisnik.KorisnickoIme).attr('href', 'korisnik.html').show();
+                            isAdmin = data.Korisnik.Tip === 1; // TipKorisnika.Administrator
+                        } else {
+                            $('#registerLink').show();
+                            $('#loginLink').show();
+                            $('#logoutLink').hide();
+                            $('#userProfileLink').hide();
+                        }
+                        loadAviokompanijaDetails();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                    }
+                });
+            }
+
+            window.logout = function () {
+                $.ajax({
+                    url: '/api/Korisnici/logout',
+                    type: 'GET',
+                    success: function () {
+                        checkSession();
+                        window.location.href = '../index.html';
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                    }
+                });
+            }
+
+            window.updateReviewStatus = function (recenzent, aviokompanija, status) {
+                var requestData = {
+                    Recenzent: recenzent,
+                    Aviokompanija: aviokompanija,
+                    Status: parseInt(status)
+                };
+
+                console.log('Sending request data:', requestData); // Log the data object before sending
+
+                $.ajax({
+                    url: '/api/Recenzije/UpdateStatus',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function () {
+                        loadAviokompanijaDetails(); // Ovde može direktno da se pozove funkcija jer su sada oba dostupna u istom scope-u
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                    }
+                });
+            }
+
+            // Funkcija za učitavanje detalja aviokompanije i letova
+            function loadAviokompanijaDetails() {
+                $.ajax({
+                    url: '/api/Aviokompanije/' + aviokompanijaNaziv,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (aviokompanija) {
+                        $('#aviokompanijaDetails h2').text(aviokompanija.Naziv);
+                        $('#aviokompanijaDetails p:first-of-type').text('Adresa: ' + aviokompanija.Adresa);
+                        $('#aviokompanijaDetails p:nth-of-type(2)').text('Kontakt: ' + aviokompanija.KontaktInformacije);
+
+                        var letoviTable = $('#letoviTable tbody');
+                        letoviTable.empty();
+                        $.each(aviokompanija.ListaLetova, function (index, let) {
+                            var row = '<tr>' +
+                                '<td>' + let.PolaznaDestinacija + '</td>' +
+                                '<td>' + let.OdredisnaDestinacija + '</td>' +
+                                '<td>' + new Date(let.DatumIVremePolaska).toLocaleString() + '</td>' +
+                                '<td>' + new Date(let.DatumIVremeDolaska).toLocaleString() + '</td>' +
+                                '<td>' + let.Cena + '</td>' +
+                                '<td>' + getStatusText(let.Status) + '</td>' +
+                                '</tr>';
+                            letoviTable.append(row);
+                        });
+
+                        loadRecenzije(aviokompanija.ListaRecenzija, aviokompanija.Naziv); // Pozivamo funkciju za učitavanje recenzija nakon učitavanja detalja aviokompanije
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

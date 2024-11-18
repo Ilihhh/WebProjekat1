@@ -1,0 +1,354 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korisnički Profil</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #41729F;
+            color: #C3E0E5;
+        }
+
+        nav {
+            background-color: #274472;
+            overflow: hidden;
+            color: #C3E0E5;
+        }
+
+            nav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+                nav a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .nav-right {
+            float: right;
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #274472;
+            border-radius: 5px;
+            background-color: #41729F;
+        }
+
+            .profile-container h2 {
+                margin-top: 0;
+            }
+
+            .profile-container label {
+                font-weight: bold;
+                margin-top: 10px;
+                display: block;
+            }
+
+            .profile-container p {
+                margin: 0;
+            }
+
+        #adminContainer {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #274472;
+            border-radius: 5px;
+            background-color: #41729F;
+        }
+
+        #logoutLink {
+            display: none;
+        }
+
+        #userProfileLink {
+            display: none;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #274472;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+             button.cancel {
+                margin-top: 3px;
+                background-color: #f44336;
+            }
+
+            button:hover {
+                opacity: 0.8;
+                background-color: #5885AF
+            }
+
+        .header-co
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #274472;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #274472
+        }
+        th.sortable {
+            cursor: pointer;
+        }
+
+            th.sortable:after {
+                content: '\25b2'; /* Arrow pointing up */
+                padding-left: 5px;
+            }
+
+            th.sortable.desc:after {
+                content: '\25bc'; /* Arrow pointing down */
+            }
+
+        input[type="text"], input[type="date"] {
+            background-color: #C3E0E5;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Početna</a>
+        <a href="aviokompanije.html">Aviokompanije</a>
+        <a id="registerLink" href="register.html" class="nav-right">Registracija</a>
+        <a id="loginLink" href="login.html" class="nav-right">Log in</a>
+        <a id="logoutLink" href="#" class="nav-right" onclick="logout()">Log out</a>
+        <a id="userProfileLink" href="#" class="nav-right"></a>
+    </nav>
+
+    <div class="profile-container" id="profileContainer" style="display:none;">
+        <h2>Korisnički Profil</h2>
+        <label>Korisničko Ime:</label>
+        <p id="korisnickoIme"></p>
+        <label>Ime:</label>
+        <p id="ime"></p>
+        <label>Prezime:</label>
+        <p id="prezime"></p>
+        <label>Email:</label>
+        <p id="email"></p>
+        <label>Datum Rođenja:</label>
+        <p id="datumRodjenja"></p>
+        <label>Pol:</label>
+        <p id="pol"></p>
+        <label>Tip Korisnika:</label>
+        <p id="tipKorisnika"></p>
+
+        <button onclick="editProfile()">Izmeni profil</button>
+    </div>
+
+    <div id="adminContainer" style="display:none;">
+        <h2>Lista korisnika</h2>
+        <input type="text" id="searchIme" placeholder="Ime">
+        <input type="text" id="searchPrezime" placeholder="Prezime">
+        <input type="date" id="searchDatumOd" placeholder="Datum od">
+        <input type="date" id="searchDatumDo" placeholder="Datum do">
+        <button onclick="searchUsers()">Pretraži</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Korisničko Ime</th>
+                    <th class="sortable" onclick="sortUsers('Ime')">Ime</th>
+                    <th>Prezime</th>
+                    <th class="sortable" onclick="sortUsers('DatumRodjenja')">Datum Rođenja</th>
+                    <th>Email</th>
+                    <th>Pol</th>
+                    <th>Tip</th>
+                </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        let users = []; // Globalna promenljiva za čuvanje korisnika
+        let currentSortField = null;
+        let currentSortOrder = 'asc';
+
+        $(document).ready(function () {
+            checkSession();
+        });
+
+        function checkSession() {
+            $.ajax({
+                url: '/api/Korisnici/checkSession',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.isLoggedIn) {
+                        $('#registerLink').hide();
+                        $('#loginLink').hide();
+                        $('#logoutLink').show();
+                        $('#userProfileLink').text(data.Korisnik.KorisnickoIme).attr('href', 'korisnik.html').show();
+
+                        // Prikazivanje informacija o korisniku
+                        $('#korisnickoIme').text(data.Korisnik.KorisnickoIme);
+                        $('#ime').text(data.Korisnik.Ime);
+                        $('#prezime').text(data.Korisnik.Prezime);
+                        $('#email').text(data.Korisnik.Email);
+                        $('#datumRodjenja').text(new Date(data.Korisnik.DatumRodjenja).toLocaleDateString());
+                        $('#pol').text(data.Korisnik.Pol);
+                        $('#tipKorisnika').text(getUserTypeString(data.Korisnik.Tip)); // Prikaz tipa korisnika kao string
+
+                        $('#profileContainer').show();
+
+                        if (data.Korisnik.Tip === 1) { // Provera da li je korisnik administrator
+                            $('#adminContainer').show();
+                            loadUsers(); // Učitaj listu korisnika
+                        }
+                    } else {
+                        $('#registerLink').show();
+                        $('#loginLink').show();
+                        $('#logoutLink').hide();
+                        $('#userProfileLink').hide();
+                        $('#profileContainer').hide();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function loadUsers() {
+            $.ajax({
+                url: '/api/Korisnici',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    users = data; // Sačuvaj korisnike u globalnu promenljivu
+                    renderUserList(users); // Prikaži korisnike
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function renderUserList(users) {
+            var userList = $('#userList');
+            userList.empty();
+            $.each(users, function (index, user) {
+                var row = '<tr>' +
+                    '<td>' + user.KorisnickoIme + '</td>' +
+                    '<td>' + user.Ime + '</td>' +
+                    '<td>' + user.Prezime + '</td>' +
+                    '<td>' + new Date(user.DatumRodjenja).toLocaleDateString() + '</td>' +
+                    '<td>' + user.Email + '</td>' +
+                    '<td>' + user.Pol + '</td>' +
+                    '<td>' + getUserTypeString(user.Tip) + '</td>' +
+                    '</tr>';
+                userList.append(row);
+            });
+        }
+
+        function searchUsers() {
+            var ime = $('#searchIme').val().toLowerCase();
+            var prezime = $('#searchPrezime').val().toLowerCase();
+            var datumOd = $('#searchDatumOd').val();
+            var datumDo = $('#searchDatumDo').val();
+
+            var filteredUsers = users.filter(function (user) {
+                var matchesIme = user.Ime.toLowerCase().includes(ime);
+                var matchesPrezime = user.Prezime.toLowerCase().includes(prezime);
+                var matchesDatumOd = !datumOd || new Date(user.DatumRodjenja) >= new Date(datumOd);
+                var matchesDatumDo = !datumDo || new Date(user.DatumRodjenja) <= new Date(datumDo);
+
+                return matchesIme && matchesPrezime && matchesDatumOd && matchesDatumDo;
+            });
+
+            renderUserList(filteredUsers);
+        }
+
+        function sortUsers(field) {
+            if (currentSortField === field) {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = field;
+                currentSortOrder = 'asc';
+            }
+
+            var sortedUsers = users.slice(); // Kopiraj korisnike u novu listu
+
+            sortedUsers.sort(function (a, b) {
+                var valueA = (field === 'DatumRodjenja') ? new Date(a[field]) : a[field].toLowerCase();
+                var valueB = (field === 'DatumRodjenja') ? new Date(b[field]) : b[field].toLowerCase();
+
+                if (valueA < valueB) {
+                    return currentSortOrder === 'asc' ? -1 : 1;
+                }
+                if (valueA > valueB) {
+                    return currentSortOrder === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+
+            renderUserList(sortedUsers);
+            updateSortIcons();
+        }
+
+        function updateSortIcons() {
+            $('th.sortable').removeClass('asc desc');
+
+            if (currentSortOrder === 'asc') {
+                $('th.sortable[onclick="sortUsers(\'' + currentSortField + '\')"]').addClass('asc');
+            } else {
+                $('th.sortable[onclick="sortUsers(\'' + currentSortField + '\')"]').addClass('desc');
+            }
+        }
+
+        function logout() {
+            $.ajax({
+                url: '/api/Korisnici/logout',
+                type: 'GET',
+                success: function () {
+                    window.location.href = '../index.html'; // Navigacija na početnu stranicu
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        // Funkcija za dobijanje stringa tipa korisnika
+        function getUserTypeString(tip) {
+            switch (tip) {
+                case 0:
+                    return 'Putnik';
+                case 1:
+                    return 'Administrator';
+                default:
+                    return 'Nepoznat';
+            }
+        }
+
+        // Funkcija za prelazak na stranicu za izmenu profila
+        function editProfile() {
+            window.location.href = 'izmeni_profil.html';
+        }
+    </script>
+</body>
+</html>

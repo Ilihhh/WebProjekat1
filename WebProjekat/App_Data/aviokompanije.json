@@ -1,0 +1,102 @@
+[
+  {
+    "Naziv": "Airline 1",
+    "Adresa": "Address 1",
+    "KontaktInformacije": "Contact 1",
+    "ListaLetova": [
+      {
+        "Id": "f569b6e7-3e2b-42a8-99b2-2e14f7d3770d",
+        "Aviokompanija": "Airline 1",
+        "PolaznaDestinacija": "Belgrade",
+        "OdredisnaDestinacija": "New York",
+        "DatumIVremePolaska": "2024-07-05T06:00:00",
+        "DatumIVremeDolaska": "2024-07-05T12:00:00",
+        "BrojSlobodnihMesta": 0,
+        "BrojZauzetihMesta": 2,
+        "Cena": 510.0,
+        "Status": 0,
+        "IsRemoved": false
+      },
+      {
+        "Id": "e35f1234-4567-89ab-cdef-1234567890ab",
+        "Aviokompanija": "Airline 1",
+        "PolaznaDestinacija": "Belgrade",
+        "OdredisnaDestinacija": "Berlin",
+        "DatumIVremePolaska": "2024-06-01T10:00:00",
+        "DatumIVremeDolaska": "2024-06-01T12:00:00",
+        "BrojSlobodnihMesta": 5,
+        "BrojZauzetihMesta": 10,
+        "Cena": 300.00,
+        "Status": 2,
+        "IsRemoved": true
+      },
+      {
+        "Id": "2eb2767b-f09a-42ef-bb9f-4f88d20f7544",
+        "Aviokompanija": "Airline 1",
+        "PolaznaDestinacija": "Belgrade",
+        "OdredisnaDestinacija": "Berlin",
+        "DatumIVremePolaska": "2024-06-28T21:06:00",
+        "DatumIVremeDolaska": "2024-06-29T18:06:00",
+        "BrojSlobodnihMesta": 15,
+        "BrojZauzetihMesta": 5,
+        "Cena": 1000.0,
+        "Status": 2,
+        "IsRemoved": false
+      }
+    ],
+    "ListaRecenzija": [],
+    "IsRemoved": false
+  },
+  {
+    "Naziv": "Airline 2",
+    "Adresa": "Address 2",
+    "KontaktInformacije": "Contact 2",
+    "ListaLetova": [
+      {
+        "Id": "91b5e6c1-3d3d-4bfa-a9fe-1f2997d00f18",
+        "Aviokompanija": "Airline 2",
+        "PolaznaDestinacija": "Belgrade",
+        "OdredisnaDestinacija": "Paris",
+        "DatumIVremePolaska": "2024-07-07T12:00:00",
+        "DatumIVremeDolaska": "2024-07-07T14:00:00",
+        "BrojSlobodnihMesta": 20,
+        "BrojZauzetihMesta": 10,
+        "Cena": 150.00,
+        "Status": 0,
+        "IsRemoved": false
+      }
+    ],
+    "ListaRecenzija": [],
+    "IsRemoved": false
+  },
+  {
+    "Naziv": "Airline 3",
+    "Adresa": "Address 3",
+    "KontaktInformacije": "Contact 3",
+    "ListaLetova": [
+      {
+        "Id": "d4e9c8b7-0b04-4f3d-af20-605f33a4e0e3",
+        "Aviokompanija": "Airline 3",
+        "PolaznaDestinacija": "Belgrade",
+        "OdredisnaDestinacija": "London",
+        "DatumIVremePolaska": "2024-07-03T15:00:00",
+        "DatumIVremeDolaska": "2024-07-03T17:00:00",
+        "BrojSlobodnihMesta": 38,
+        "BrojZauzetihMesta": 2,
+        "Cena": 200.00,
+        "Status": 1,
+        "IsRemoved": false
+      }
+    ],
+    "ListaRecenzija": [],
+    "IsRemoved": false
+  },
+  {
+    "Naziv": "Airline 4",
+    "Adresa": "Adress 4",
+    "KontaktInformacije": "123456",
+    "ListaLetova": [],
+    "ListaRecenzija": [],
+    "IsRemoved": false
+  }
+]

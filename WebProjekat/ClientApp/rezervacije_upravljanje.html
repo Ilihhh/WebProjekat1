@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administracija Rezervacija</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #41729F;
+            color: #C3E0E5;
+        }
+
+        nav {
+            background-color: #274472;
+            overflow: hidden;
+            color: #C3E0E5;
+        }
+
+            nav a {
+                float: left;
+                display: block;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+            }
+
+                nav a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .nav-right {
+            float: right;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            border: 1px solid #274472;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #274472
+        }
+
+        h1 {
+            margin-left: 10px;
+        }
+
+        .action-column {
+            text-align: center;
+        }
+
+            .action-column button {
+                padding: 5px 10px;
+                background-color: #274472;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 3px;
+            }
+
+                .action-column button.cancel {
+                    background-color: #f44336;
+                }
+
+                .action-column button:hover {
+                    opacity: 0.8;
+                }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Početna</a>
+        <a href="aviokompanije.html">Aviokompanije</a>
+        <a id="registerLink" href="register.html" class="nav-right">Registracija</a>
+        <a id="loginLink" href="login.html" class="nav-right">Log in</a>
+        <a id="logoutLink" href="#" class="nav-right" style="display:none;" onclick="logout()">Log out</a>
+        <a id="userProfileLink" href="#" class="nav-right" style="display:none;"></a>
+        <a id="rezervacijeLink" href="rezervacije_upravljanje.html">Rezervacije</a>
+    </nav>
+
+    <h1>Administracija Rezervacija</h1>
+    <table id="rezervacijeTable">
+        <thead>
+            <tr>
+                <th>Korisnik</th>
+                <th>Aviokompanija</th>
+                <th>Polazna Destinacija</th>
+                <th>Odredišna Destinacija</th>
+                <th>Datum i vreme polaska</th>
+                <th>Datum i vreme dolaska</th>
+                <th>Broj putnika</th>
+                <th>Ukupna cena</th>
+                <th>Status</th>
+                <th>Akcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Podaci će se dinamički dodavati ovde -->
+        </tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var reservations = [];
+        var flights = [];
+
+        $(document).ready(function () {
+            checkSession();
+        });
+
+        function checkSession() {
+            $.ajax({
+                url: '/api/Korisnici/checkSession',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.isLoggedIn) {
+                        $('#registerLink').hide();
+                        $('#loginLink').hide();
+                        $('#logoutLink').show();
+                        $('#userProfileLink').text(data.Korisnik.KorisnickoIme).attr('href', 'korisnik.html').show();
+                        $('#rezervacijeLink').show();
+
+                        loadUsers();
+                        loadFlights();
+                    } else {
+                        $('#registerLink').show();
+                        $('#loginLink').show();
+                        $('#logoutLink').hide();
+                        $('#userProfileLink').hide();
+                        $('#rezervacijeLink').hide();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function logout() {
+            $.ajax({
+                url: '/api/Korisnici/logout',
+                type: 'GET',
+                success: function () {
+                    checkSession();
+                    window.location.href = "../index.html";
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function loadUsers() {
+            $.ajax({
+                url: '/api/Korisnici',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    reservations = [];
+                    data.forEach(user => {
+                        console.log('User:', user); // Ispis korisnika u konzolu
+                        reservations = reservations.concat(user.ListaRezervacija.map(reservation => ({
+                            ...reservation,
+                            Korisnik: user.KorisnickoIme
+                        })));
+                    });
+                    displayReservations();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+
+        function loadFlights() {
+            $.ajax({
+                url: '/api/Letovi',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    flights = data;
+                    displayReservations();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        function displayReservations() {
+            var tableBody = $('#rezervacijeTable tbody');
+            tableBody.empty();
+
+            $.each(reservations, function (index, rezervacija) {
+                var let = flights.find(flight => flight.Id === rezervacija.Let);
+
+                if (let) {
+                    var datumIVremePolaska = new Date(let.DatumIVremePolaska);
+                    var sada = new Date();
+
+                    var row = '<tr>' +
+                        '<td>' + rezervacija.Korisnik + '</td>' +
+                        '<td>' + let.Aviokompanija + '</td>' +
+                        '<td>' + let.PolaznaDestinacija + '</td>' +
+                        '<td>' + let.OdredisnaDestinacija + '</td>' +
+                        '<td>' + datumIVremePolaska.toLocaleString() + '</td>' +
+                        '<td>' + new Date(let.DatumIVremeDolaska).toLocaleString() + '</td>' +
+                        '<td>' + rezervacija.BrojPutnika + '</td>' +
+                        '<td>' + rezervacija.UkupnaCena + '</td>' +
+                        '<td>' + getStatusText(rezervacija.Status) + '</td>' +
+                        '<td class="action-column">';
+
+                    if (rezervacija.Status === 0) {
+                        row += '<button onclick="changeStatus(\'' + rezervacija.Id + '\', 1, \'' + rezervacija.Korisnik + '\', ' + rezervacija.BrojPutnika + ')">Odobri</button>';
+                        if (datumIVremePolaska - sada > 24 * 60 * 60 * 1000) {
+                            row += '<button class="cancel" onclick="changeStatus(\'' + rezervacija.Id + '\', 2, \'' + rezervacija.Korisnik + '\', ' + rezervacija.BrojPutnika + ')">Otkaži</button>';
+                        }
+                    }
+
+                    row += '</td></tr>';
+                    tableBody.append(row);
+                }
+            });
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 0:
+                    return "Kreirana";
+                case 1:
+                    return "Odobrena";
+                case 2:
+                    return "Otkazana";
+                case 3:
+                    return "Završena";
+                default:
+                    return "Nepoznat";
+            }
+        }
+
+        function changeStatus(reservationId, newStatus, korisnik, brojPutnika) {
+            $.ajax({
+                url: '/api/Reservations/ChangeStatus',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    ReservationId: reservationId,
+                    NewStatus: newStatus,
+                    Korisnik: korisnik,
+                    BrojPutnika: brojPutnika
+                }),
+                success: function (response) {
+                    alert('Status rezervacije uspešno promenjen');
+                    checkSession();
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    alert('Greška pri promeni statusa rezervacije');
+                }
+            });
+        }
+
+
+    </script>
+</body>
+</html>
